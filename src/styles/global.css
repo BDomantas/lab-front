@@ -22,6 +22,9 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
+    --markColor: 160.5 70.2% 66.85%;
+    --markColor-foreground: 222.2 47.4% 11.2%;
+
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
@@ -47,6 +50,9 @@
 
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
+
+    --markColor: 217.2 32.6% 17.5%;
+    --markColor-foreground: 210 40% 98%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;

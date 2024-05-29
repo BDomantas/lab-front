@@ -34,6 +34,10 @@ module.exports = {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
         },
+        markColor: {
+          DEFAULT: 'var(--markColor)',
+          foreground: 'var(--markColor-foreground)',
+        },
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
