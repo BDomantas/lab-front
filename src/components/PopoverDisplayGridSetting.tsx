@@ -9,9 +9,11 @@ import { RgbColor } from 'react-colorful';
 
 interface Props {
   settingKey: string;
+  title: string;
+  subtitle: string;
 }
 
-const PopoverComponent: React.FC<Props> = ({ settingKey }) => {
+const PopoverComponent: React.FC<Props> = ({ settingKey, title, subtitle }) => {
   const { settings, setGridData, setColor } = useGridDataStore();
 
   const handleCellPress = (rowIndex: number, columnIndex: number) => {
@@ -25,12 +27,12 @@ const PopoverComponent: React.FC<Props> = ({ settingKey }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline">Užskaitymo vaizdas</Button>
+        <Button variant="outline">{title}</Button>
       </PopoverTrigger>
       <PopoverContent className="w-80">
         <div className="grid gap-4">
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Dėžutė parodys šį vaizdą po sėkmingo pažymėjimo</p>
+            <p className="text-sm text-muted-foreground">{subtitle}</p>
           </div>
           <PopoverColorPicker color={color} onChange={(newColor: RgbColor) => setColor(settingKey, newColor)} />
           <div className="grid grid-cols-8 gap-2">
