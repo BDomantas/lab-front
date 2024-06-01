@@ -39,7 +39,7 @@ dependencies:
     specifier: ^2.1.1
     version: 2.1.1
   react:
-    specifier: ^18.2.0
+    specifier: ^18.3.1
     version: 18.3.1
   react-colorful:
     specifier: ^5.6.1
@@ -47,6 +47,9 @@ dependencies:
   react-dom:
     specifier: ^18.2.0
     version: 18.3.1(react@18.3.1)
+  scheduler:
+    specifier: ^0.23.2
+    version: 0.23.2
   tailwind-merge:
     specifier: ^2.3.0
     version: 2.3.0
@@ -56,6 +59,9 @@ dependencies:
   tauri-plugin-serialplugin:
     specifier: link:../tauri-plugin-serialplugin
     version: link:../tauri-plugin-serialplugin
+  use-context-selector:
+    specifier: ^2.0.0
+    version: 2.0.0(react@18.3.1)(scheduler@0.23.2)
   zustand:
     specifier: ^4.5.2
     version: 4.5.2(@types/react@18.3.3)(react@18.3.1)
@@ -2437,6 +2443,16 @@ packages:
       '@types/react': 18.3.3
       react: 18.3.1
       tslib: 2.6.2
+    dev: false
+
+  /use-context-selector@2.0.0(react@18.3.1)(scheduler@0.23.2):
+    resolution: {integrity: sha512-owfuSmUNd3eNp3J9CdDl0kMgfidV+MkDvHPpvthN5ThqM+ibMccNE0k+Iq7TWC6JPFvGZqanqiGCuQx6DyV24g==}
+    peerDependencies:
+      react: '>=18.0.0'
+      scheduler: '>=0.19.0'
+    dependencies:
+      react: 18.3.1
+      scheduler: 0.23.2
     dev: false
 
   /use-sidecar@1.1.2(@types/react@18.3.3)(react@18.3.1):

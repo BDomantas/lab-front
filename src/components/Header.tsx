@@ -13,18 +13,16 @@ import {
 } from '@/components/ui/select';
 import { PortInfo } from 'tauri-plugin-serialplugin';
 import { memo } from 'react';
+import { useContextSelector } from 'use-context-selector'; // Make sure this is installed
+import { SerialPortControlContext } from '@/services/SerialPortControlProvider';
 
-interface HeaderProps {
-  isConnected: boolean;
-  ports?: Record<string, PortInfo>;
-  onSelect: (value: string) => void;
-  onOpen: () => void;
-  onConnectPress: () => void;
-}
+interface HeaderProps {}
 
 interface SelectionProps {
-  selections?: Record<string, PortInfo>;
+  selections?: Record<string, PortInfo> | null;
 }
+const BAUD_RATE = 115200;
+
 const Selections = ({ selections }: SelectionProps) => {
   if (!selections) {
     return null;
@@ -40,13 +38,39 @@ const Selections = ({ selections }: SelectionProps) => {
   );
 };
 
-export const Header = memo(({ isConnected, ports, onSelect, onOpen, onConnectPress }: HeaderProps) => {
+export const Header = memo(({}: HeaderProps) => {
+  const { ports, selectedPort, isConnected, getPorts, connect, setSelectedPort } = useContextSelector(
+    SerialPortControlContext,
+    (context) => context // Select all values from context
+  );
+
+  const handleSelect = (portPath: string) => {
+    setSelectedPort(portPath); // Assuming you have setSelectedPort from the context
+  };
+
+  const handleOpen = () => {
+    getPorts();
+  };
+
+  console.log(ports, 'ports');
+
+  const handleConnect = () => {
+    if (selectedPort) {
+      // Use the `selectedPort` to connect
+      connect({
+        path: selectedPort,
+
+        baudRate: BAUD_RATE,
+        stopBits: 1,
+      });
+    }
+  };
   return (
     <header className="">
       <div className="flex items-center justify-between px-4 py-2">
         <h4 className="text-sm font-medium leading-none">Labirintai</h4>
         <div className="flex items-center space-x-4">
-          <Select onValueChange={onSelect} onOpenChange={onOpen}>
+          <Select onValueChange={handleSelect} onOpenChange={handleOpen}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Valdiklis" />
             </SelectTrigger>
@@ -73,7 +97,7 @@ export const Header = memo(({ isConnected, ports, onSelect, onOpen, onConnectPre
 
           <Separator orientation="vertical" className="h-8" />
 
-          <Button onClick={onConnectPress}>Jungtis</Button>
+          <Button onClick={handleConnect}>Jungtis</Button>
         </div>
       </div>
       <Separator orientation="horizontal" />

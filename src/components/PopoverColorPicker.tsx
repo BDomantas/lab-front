@@ -8,8 +8,8 @@ interface PopoverPickerProps {
   onChange: (color: RgbColor) => void;
 }
 
-export const PopoverPicker = ({ color, onChange }: PopoverPickerProps) => {
-  const popover = useRef();
+export const PopoverColorPicker = ({ color, onChange }: PopoverPickerProps) => {
+  const popover = useRef(null);
   const [isOpen, toggle] = useState(false);
 
   const close = useCallback(() => toggle(false), []);
@@ -18,7 +18,7 @@ export const PopoverPicker = ({ color, onChange }: PopoverPickerProps) => {
   return (
     <div className="relative">
       <div
-        className="w-28 h-28 rounded-md border-3 border-white shadow-md cursor-pointer"
+        className="w-12 h-12 rounded-md border-3 border-white shadow-md cursor-pointer"
         style={{ backgroundColor: RgbColorToString(color) }}
         onClick={() => toggle(true)}
       />
