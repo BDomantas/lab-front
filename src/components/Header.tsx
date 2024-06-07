@@ -52,17 +52,19 @@ export const Header = memo(({}: HeaderProps) => {
     getPorts();
   };
 
-  console.log(ports, 'ports');
-
   const handleConnect = () => {
     if (selectedPort) {
       // Use the `selectedPort` to connect
-      connect({
-        path: selectedPort,
+      try {
+        connect({
+          path: selectedPort,
 
-        baudRate: BAUD_RATE,
-        stopBits: 1,
-      });
+          baudRate: BAUD_RATE,
+          stopBits: 1,
+        });
+      } catch (error) {
+        console.error('Error connecting to port:', error);
+      }
     }
   };
   return (

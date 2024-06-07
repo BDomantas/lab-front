@@ -1,13 +1,12 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Toggle } from '@/components/ui/toggle';
 import { useSystemStore } from '@/store/system';
-import { getPanelElement, ImperativePanelHandle } from 'react-resizable-panels';
+import { ImperativePanelHandle } from 'react-resizable-panels';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from './ui/resizable';
 import { Input } from './ui/input';
 import { Cross1Icon } from '@radix-ui/react-icons';
-import { AspectRatio } from './ui/aspect-ratio';
 interface Props {}
 
 const getBoxID = (rowIndex: number) => (rowIndex + 1).toString().padStart(2, '0');
@@ -51,8 +50,6 @@ const StatusGrid: React.FC<Props> = ({}) => {
           <div className="grid grid-cols-10 gap-1 p-2">
             {statusGrid.map((cell, rowIndex) => (
               <div key={rowIndex} className="flex items-center justify-center">
-                {/* Add width, height, and styling for each cell */}
-
                 <Button
                   size="sm"
                   variant={'outline'}

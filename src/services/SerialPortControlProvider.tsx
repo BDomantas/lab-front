@@ -83,12 +83,14 @@ export const SerialPortControlProvider: React.FC<{ children: ReactNode }> = ({ c
     try {
       serialPort?.cancelRead();
       serialPort?.close();
+      SerialPort.closeAll();
     } catch (error) {
       console.error('Disconnect error:', error);
+    } finally {
+      console.log('disconnected');
+      setSerialPort(null);
+      setIsConnected(false);
     }
-
-    setSerialPort(null);
-    setIsConnected(false);
   };
 
   useEffect(() => {

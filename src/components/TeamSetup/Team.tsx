@@ -9,39 +9,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { type Team } from '@/store/game';
 
-const team = [
-  {
-    name: 'Domantas',
-    score: '1',
-    tag: 'uuid:1',
-  },
-  {
-    name: 'jacob',
-    score: '110',
-    tag: 'uuid:2',
-  },
-  {
-    name: 'darwin',
-    score: '110',
-    tag: 'uuid:3',
-  },
-  {
-    name: 'laura',
-    score: '2',
-    tag: 'uuid:4',
-  },
-  {
-    name: 'emma',
-    score: '20',
-    tag: 'uuid:5',
-  },
-];
 interface Props {
-  name: string;
+  team: Team;
 }
 
-const Team: React.FC<Props> = ({ name }) => {
+const Team: React.FC<Props> = ({ team }) => {
+  if (!team) {
+    return <div className="flex justify-center items-center">Team not found</div>;
+  }
+  const { name, members } = team;
+
+  console.log(members);
+
   return (
     <Table>
       <TableCaption align="top">{name}</TableCaption>
@@ -53,7 +34,7 @@ const Team: React.FC<Props> = ({ name }) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {team.map((member) => (
+        {members.map((member) => (
           <TableRow key={member.tag}>
             <TableCell className="font-medium">{member.name}</TableCell>
             <TableCell colSpan={2}>{member.tag}</TableCell>
@@ -64,7 +45,7 @@ const Team: React.FC<Props> = ({ name }) => {
       <TableFooter>
         <TableRow>
           <TableCell colSpan={3}>Komandos taškai</TableCell>
-          <TableCell className="text-right">{team.reduce((a, b) => a + parseInt(b.score, 10), 0)}</TableCell>
+          <TableCell className="text-right">{members.reduce((a, b) => a + b.score ?? 0, 0)}</TableCell>
         </TableRow>
       </TableFooter>
     </Table>

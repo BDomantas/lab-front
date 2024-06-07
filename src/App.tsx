@@ -1,5 +1,3 @@
-import { useCallback, useEffect, useState } from 'react';
-import { PortInfo, SerialPort, SerialportOptions } from 'tauri-plugin-serialplugin';
 import { Header } from '@/components/Header';
 import { Button } from './components/ui/button';
 import { RgbColor } from 'react-colorful';
@@ -13,9 +11,11 @@ import StatusGrid from './components/StatusGrid';
 
 import React from 'react';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from './components/ui/collapsible';
-import { ChevronDownIcon, ChevronUpIcon, SunIcon } from '@radix-ui/react-icons';
+import { ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
 import { Separator } from '@radix-ui/react-separator';
 import TeamsSetup from './components/TeamSetup/TeamsSetup';
+import { Toaster } from './components/ui/sonner';
+import PopoverSetting from './components/PopoverSettings';
 
 export const RgbColorToString = (color: RgbColor) => `rgb(${color.r} ${color.g} ${color.b})`;
 
@@ -38,6 +38,9 @@ function App() {
             title="Blokavimo vaizdas"
             subtitle="Dėžutė parodys šį vaizdą po sėkmingo blokavimo"
           />
+
+          <PopoverSetting title="Kodas" subtitle="Dėžutė parodys kodą kas nustatytą laiko intervalą" />
+
           <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full my-2">
             <div className="">
               <Separator className="w-full bg-border h-[1px]" orientation="horizontal" />
@@ -60,16 +63,15 @@ function App() {
           </Collapsible>
         </div>
         <TeamsSetup />
-        {/* <Button
-            onClick={() => {
-              // console.log('write', SerialInstance);
-              // SerialInstance?.write(`#BLOCK:1,5,${color.r},${color.g},${color.b},${gridToDecimalString}\n`);
-            }}
-          >
-            Write
-          </Button>
-
-          <SerialDataDisplay /> */}
+        <Button
+          onClick={() => {
+            // console.log('write', SerialInstance);
+            // SerialInstance?.write(`#BLOCK:1,5,${color.r},${color.g},${color.b},${gridToDecimalString}\n`);
+          }}
+        >
+          START
+        </Button>
+        <Toaster />
       </SerialDataProvider>
     </SerialPortControlProvider>
   );

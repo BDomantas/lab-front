@@ -1,23 +1,35 @@
 // gridDataStore.ts
 import { create } from 'zustand';
 import { RgbColor } from 'react-colorful';
+import { immer } from 'zustand/middleware/immer';
 
-type Setting = {
+type GridSetting = {
   color: RgbColor;
   gridData: number[][];
   gridCommandData: number[]; // New field for computed value
 };
 
+type CodeSetting = {
+  code: number[];
+  timeInterval: number;
+};
+
+export type SettingKey = 'mark' | 'block'; // Add as many as you need
+
 type GridDataStore = {
   settings: {
-    default: Setting;
-    [key: string]: Setting;
+    defaultGridSetting: GridSetting;
+    codeSetting: CodeSetting;
+  } & {
+    [K in SettingKey]?: GridSetting;
   };
 } & Actions;
 
 type Actions = {
-  setGridData: (settingKey: string, rowIndex: number, columnIndex: number) => void;
-  setColor: (settingKey: string, newColor: RgbColor) => void;
+  setGridData: (settingKey: SettingKey, rowIndex: number, columnIndex: number) => void;
+  setColor: (settingKey: SettingKey, newColor: RgbColor) => void;
+  updateCode: (newCode: string) => void;
+  updateTimeInterval: (newTimeInterval: string) => void;
 };
 
 const gridToCommandData = (grid: number[][]) => grid.map((row) => parseInt(row.join(''), 2));
@@ -32,41 +44,55 @@ const defaultGrid = [
   [0, 0, 0, 1, 1, 0, 0, 0],
   [0, 0, 0, 1, 1, 0, 0, 0],
 ];
-export const useGridDataStore = create<GridDataStore>((set) => ({
-  settings: {
-    default: {
-      color: { r: 200, g: 150, b: 35 },
-      gridData: defaultGrid,
-      gridCommandData: gridToCommandData(defaultGrid), // New field for computed value
-    },
-  },
-  setGridData: (settingKey, rowIndex, columnIndex) =>
-    set((state) => {
-      const setting = state.settings[settingKey] ?? state.settings.default;
-      const newGridData = setting.gridData.map((row, i) =>
-        i === rowIndex ? row.map((cell, j) => (j === columnIndex ? (cell === 0 ? 1 : 0) : cell)) : row
-      );
-      const newGridCommandData = gridToCommandData(newGridData);
 
-      return {
-        settings: {
-          ...state.settings,
-          [settingKey]: {
-            ...setting,
-            gridData: newGridData,
-            gridCommandData: newGridCommandData,
-          },
-        },
-      };
-    }),
-  setColor: (settingKey, newColor) =>
-    set((state) => ({
-      settings: {
-        ...state.settings,
-        [settingKey]: {
-          ...(state.settings?.[settingKey] ?? state.settings.default),
-          color: newColor,
-        },
+export const updateGridSettingOrDefault = (
+  state: GridDataStore,
+  settingKey: SettingKey,
+  updateFn: (setting: GridSetting) => void
+) => {
+  // Check if the settingKey exists, otherwise create a new one based on default
+  state.settings[settingKey] = state.settings[settingKey] || { ...state.settings.defaultGridSetting };
+  const setting = state.settings[settingKey];
+
+  updateFn(setting!); // Apply the specific update logic to the setting
+};
+
+export const useGridDataStore = create<GridDataStore>()(
+  immer((set) => ({
+    settings: {
+      defaultGridSetting: {
+        color: { r: 200, g: 150, b: 35 },
+        gridData: defaultGrid,
+        gridCommandData: gridToCommandData(defaultGrid),
       },
-    })),
-}));
+      codeSetting: {
+        code: [],
+        timeInterval: 1,
+      },
+    },
+    setGridData: (settingKey, rowIndex, columnIndex) =>
+      set((state) => {
+        updateGridSettingOrDefault(state, settingKey, (setting) => {
+          setting.gridData[rowIndex][columnIndex] = setting.gridData[rowIndex][columnIndex] === 0 ? 1 : 0;
+          setting.gridCommandData = gridToCommandData(setting.gridData);
+        });
+      }),
+
+    setColor: (settingKey, newColor) =>
+      set((state) => {
+        updateGridSettingOrDefault(state, settingKey, (setting) => {
+          setting.color = newColor;
+        });
+      }),
+
+    updateCode: (newCode: string) =>
+      set((state) => {
+        state.settings.codeSetting.code = newCode.split('').map((char) => parseInt(char, 10));
+      }),
+
+    updateTimeInterval: (newTimeInterval: string) =>
+      set((state) => {
+        state.settings.codeSetting.timeInterval = parseInt(newTimeInterval, 10);
+      }),
+  }))
+);

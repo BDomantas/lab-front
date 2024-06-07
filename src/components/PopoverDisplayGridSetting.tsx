@@ -4,11 +4,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Toggle } from '@/components/ui/toggle';
 import { PopoverColorPicker } from '@/components/PopoverColorPicker';
 import { SunIcon } from '@radix-ui/react-icons';
-import { useGridDataStore } from '@/store/settings';
+import { SettingKey, useGridDataStore } from '@/store/settings';
 import { RgbColor } from 'react-colorful';
 
 interface Props {
-  settingKey: string;
+  settingKey: SettingKey;
   title: string;
   subtitle: string;
 }
@@ -21,8 +21,8 @@ const PopoverComponent: React.FC<Props> = ({ settingKey, title, subtitle }) => {
     setGridData(settingKey, rowIndex, columnIndex);
   };
 
-  const color = settings?.[settingKey]?.color ?? settings.default.color;
-  const gridData = settings?.[settingKey]?.gridData ?? settings.default.gridData;
+  const color = settings?.[settingKey]?.color ?? settings.defaultGridSetting.color;
+  const gridData = settings?.[settingKey]?.gridData ?? settings.defaultGridSetting.gridData;
 
   return (
     <Popover>
