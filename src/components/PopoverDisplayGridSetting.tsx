@@ -17,7 +17,6 @@ const PopoverComponent: React.FC<Props> = ({ settingKey, title, subtitle }) => {
   const { settings, setGridData, setColor } = useGridDataStore();
 
   const handleCellPress = (rowIndex: number, columnIndex: number) => {
-    console.log('setting');
     setGridData(settingKey, rowIndex, columnIndex);
   };
 

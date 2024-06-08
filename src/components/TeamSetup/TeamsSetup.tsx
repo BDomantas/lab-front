@@ -33,7 +33,6 @@ const TeamsSetup: React.FC<Props> = ({}) => {
   const handleAddTeam = useCallback(() => {
     console.log('add team', selectedTeam);
     const currentTag = selectedTag();
-    console.log(inputValue, selectedTeam, currentTag);
     if (currentTag) {
       addMember(inputValue, selectedTeam, currentTag);
       toast.success('Žaidėjas pridėtas', {

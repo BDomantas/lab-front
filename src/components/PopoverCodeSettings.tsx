@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useGridDataStore } from '@/store/settings';
@@ -12,8 +12,26 @@ interface Props {
   subtitle: string;
 }
 
-const PopoverSetting: React.FC<Props> = ({ title, subtitle }) => {
+const PopoverCodeSetting: React.FC<Props> = ({ title, subtitle }) => {
   const { settings, updateCode, updateTimeInterval } = useGridDataStore();
+  const [codeIntervalInput, setCodeIntervalInput] = useState(String(settings.blockSetting.blockTime ?? ''));
+
+  // onChange handler that only accepts valid numeric input
+  const handleCodeIntevalChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const inputValue = event.target.value;
+    const numericValue = inputValue.replace(/[^0-9]/g, ''); // Filter non-numeric characters
+
+    // Always update the local state to reflect the filtered value
+    setCodeIntervalInput(numericValue);
+
+    const parsedValue = parseInt(numericValue, 10); // Parse to number
+    if (!isNaN(parsedValue)) {
+      // Ensure the parsed value is valid
+      updateTimeInterval(parsedValue); // Call the provided update function
+    } else {
+      updateTimeInterval(undefined); // Update the state to undefined if the parsed value is invalid
+    }
+  };
 
   return (
     <Popover>
@@ -54,8 +72,8 @@ const PopoverSetting: React.FC<Props> = ({ title, subtitle }) => {
               placeholder="Laiko intervalas"
               inputMode="numeric"
               pattern="\d*"
-              value={settings.codeSetting.timeInterval}
-              onChange={(event) => updateTimeInterval(event.target.value)}
+              value={codeIntervalInput}
+              onChange={handleCodeIntevalChange}
             />
           </div>
         </div>
@@ -64,4 +82,4 @@ const PopoverSetting: React.FC<Props> = ({ title, subtitle }) => {
   );
 };
 
-export default PopoverSetting;
+export default PopoverCodeSetting;

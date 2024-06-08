@@ -21,8 +21,6 @@ const Team: React.FC<Props> = ({ team }) => {
   }
   const { name, members } = team;
 
-  console.log(members);
-
   return (
     <Table>
       <TableCaption align="top">{name}</TableCaption>

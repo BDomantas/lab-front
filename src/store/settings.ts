@@ -11,7 +11,11 @@ type GridSetting = {
 
 type CodeSetting = {
   code: number[];
-  timeInterval: number;
+  timeInterval?: number;
+};
+
+type BlockSetting = {
+  blockTime?: number;
 };
 
 export type SettingKey = 'mark' | 'block'; // Add as many as you need
@@ -20,6 +24,7 @@ type GridDataStore = {
   settings: {
     defaultGridSetting: GridSetting;
     codeSetting: CodeSetting;
+    blockSetting: BlockSetting;
   } & {
     [K in SettingKey]?: GridSetting;
   };
@@ -29,7 +34,8 @@ type Actions = {
   setGridData: (settingKey: SettingKey, rowIndex: number, columnIndex: number) => void;
   setColor: (settingKey: SettingKey, newColor: RgbColor) => void;
   updateCode: (newCode: string) => void;
-  updateTimeInterval: (newTimeInterval: string) => void;
+  updateTimeInterval: (newTimeInterval?: number) => void;
+  updateBlockTime: (newBlockTime?: number) => void;
 };
 
 const gridToCommandData = (grid: number[][]) => grid.map((row) => parseInt(row.join(''), 2));
@@ -67,7 +73,12 @@ export const useGridDataStore = create<GridDataStore>()(
       },
       codeSetting: {
         code: [],
-        timeInterval: 1,
+        timeInterval: undefined,
+        timeIntervalInput: '',
+      },
+      blockSetting: {
+        blockTime: undefined,
+        blockTimeInput: '',
       },
     },
     setGridData: (settingKey, rowIndex, columnIndex) =>
@@ -90,9 +101,16 @@ export const useGridDataStore = create<GridDataStore>()(
         state.settings.codeSetting.code = newCode.split('').map((char) => parseInt(char, 10));
       }),
 
-    updateTimeInterval: (newTimeInterval: string) =>
+    updateTimeInterval: (newTimeInterval?: number) =>
       set((state) => {
-        state.settings.codeSetting.timeInterval = parseInt(newTimeInterval, 10);
+        console.log('updateTimeInterval', newTimeInterval);
+        state.settings.codeSetting.timeInterval = newTimeInterval;
+      }),
+
+    updateBlockTime: (newBlockTime?: number) =>
+      set((state) => {
+        console.log('updateBlockTime', newBlockTime);
+        state.settings.blockSetting.blockTime = newBlockTime;
       }),
   }))
 );

@@ -12,7 +12,6 @@ export const MagnetList = ({}: MagnetListProps) => {
 
   const currentSelectedTag = selectedTag();
 
-  console.log('ALLL TAGS', tags);
   return (
     <ScrollArea className="h-72 w-48 rounded-md border">
       <div className="p-4">
@@ -23,7 +22,6 @@ export const MagnetList = ({}: MagnetListProps) => {
           variant={'outline'}
           value={currentSelectedTag}
           onValueChange={(value) => {
-            console.log('value', value);
             if (value) selectTag(value);
           }}
           className="flex flex-col"

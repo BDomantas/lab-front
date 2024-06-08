@@ -18,7 +18,6 @@ const StatusGrid: React.FC<Props> = ({}) => {
 
   const handleCellPress = useCallback(
     (cellIndex: number) => {
-      console.log('setting', cellIndex, isOpen);
       if (refs.current) {
         if (refs.current.isExpanded()) {
           if (isOpen === cellIndex) {
