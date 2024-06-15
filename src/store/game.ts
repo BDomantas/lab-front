@@ -22,7 +22,7 @@ type Member = {
   name: string;
   score: number;
   tag: string;
-  lastTag?: number;
+  lastTag: Record<string, number>;
   log: TagLog[];
   codeLog: CodeLog[];
 };
@@ -59,6 +59,7 @@ const newMember = (name: string, tag: string): Member => ({
   tag,
   log: [],
   codeLog: [],
+  lastTag: {},
 });
 
 const newTeam = (name: string): Team => ({ name, members: [] });
@@ -76,7 +77,7 @@ type Actions = {
   addTag: (tag: string) => void;
   addMember: (name: string, team: string, tag: string) => void;
   useTag: (tag: string, boxId: number) => { boxId: number; result: TagUseResult; member?: Member; code?: number };
-  startGame: (blockTime: number, codeInterval: number) => void;
+  startGame: (blockTime?: number, codeInterval?: number) => void;
 };
 
 const INITIAL_STATE: GameDataStore = {
@@ -169,7 +170,7 @@ const findMemberWithTag = (state: GameDataStore, tag: string): Member | undefine
 
 const increaseScoreAndUpdateLastTag = (member: Member): void => {
   member.score += 1;
-  member.lastTag = Date.now();
+  // member.lastTag = Date.now();
 };
 
 const updateLog = (member: Member, boxId: number): void => {
@@ -182,6 +183,18 @@ export enum TagUseResult {
   ERROR_MEMBER_NOT_FOUND = 'ERROR_MEMBER_NOT_FOUND',
   ERROR_GAME_NOT_RUNNING = 'ERROR_GAME_NOT_RUNNING',
   CODE = 'CODE',
+}
+
+function findHighestCodeIndexEntry(codeLog: CodeLog[]): CodeLog | null {
+  let highestIndexEntry: CodeLog | null = null;
+
+  for (const entry of codeLog) {
+    if (highestIndexEntry === null || entry.codeIndex > highestIndexEntry.codeIndex) {
+      highestIndexEntry = entry;
+    }
+  }
+
+  return highestIndexEntry;
 }
 
 export const useGameStore = create<GameDataStore>()(
@@ -227,9 +240,10 @@ export const useGameStore = create<GameDataStore>()(
         assignTagHelper(state.tags, tag);
       }),
 
+    // Modified useTag action
     useTag: (tag, boxId) => {
       const currentTime = Date.now();
-      let result: TagUseResult = TagUseResult.ERROR_GAME_NOT_RUNNING;
+      let result: TagUseResult = TagUseResult.ERROR_GAME_NOT_RUNNING; // No default value, it will be set later
       let updatedMember: Member | undefined;
       let code: number | undefined;
 
@@ -240,27 +254,58 @@ export const useGameStore = create<GameDataStore>()(
 
           if (member) {
             updateLog(member, boxId);
-
-            if (!member.lastTag || currentTime - member.lastTag >= state.game.blockTime) {
+            console.log(
+              'CHECK CHECK',
+              member?.lastTag[tag] >= state.game.blockTime,
+              state.game.blockTime,
+              member?.lastTag[tag]
+            );
+            if (!member.lastTag?.[tag] || currentTime - (member.lastTag?.[tag] ?? 0) >= state.game.blockTime) {
               increaseScoreAndUpdateLastTag(member);
 
+              // Code generation logic
+
               const elapsedTime = currentTime - state.game.startTime;
+              // Check if elapsedTime is greater than or equal to codeInterval * (expectedCodeIndex + 1)
               const expectedCodeIndex = Math.floor(elapsedTime / state.game.codeInterval);
-
               const hasCodeIndex = member.codeLog.some((log) => log.codeIndex === expectedCodeIndex);
+              const lastCode = findHighestCodeIndexEntry(member.codeLog)?.codeIndex;
 
-              if (!hasCodeIndex) {
-                member.codeLog.push({ timestamp: currentTime, codeIndex: expectedCodeIndex });
-                code = expectedCodeIndex;
-                result = TagUseResult.CODE;
+              console.log(
+                'elapsedTime',
+                elapsedTime,
+                'expectedCodeIndex',
+                expectedCodeIndex,
+                'hasCodeIndex',
+                hasCodeIndex,
+                'codeInterval * (expectedCodeIndex + 1)',
+                state.game.codeInterval * (expectedCodeIndex + 1),
+                'lastCode',
+                lastCode
+              );
+
+              if (!hasCodeIndex && elapsedTime >= state.game.codeInterval) {
+                if (lastCode === undefined) {
+                  code = 0;
+                  member.codeLog.push({ timestamp: currentTime, codeIndex: 0 });
+                  result = TagUseResult.CODE;
+                } else if (lastCode < expectedCodeIndex) {
+                  code = lastCode + 1;
+                  member.codeLog.push({ timestamp: currentTime, codeIndex: code });
+                  result = TagUseResult.CODE;
+                } else {
+                  result = TagUseResult.MARK;
+                }
               } else {
                 result = TagUseResult.MARK;
               }
+              member.lastTag[tag] = currentTime;
             } else {
+              console.log('Blocked', currentTime - member.lastTag[tag]);
               result = TagUseResult.BLOCKED;
             }
           } else {
-            result = TagUseResult.ERROR_MEMBER_NOT_FOUND;
+            result = TagUseResult.ERROR_MEMBER_NOT_FOUND; // Set result when member not found
           }
         } else {
           result = TagUseResult.ERROR_GAME_NOT_RUNNING;
@@ -273,14 +318,18 @@ export const useGameStore = create<GameDataStore>()(
     // New startGame action
     startGame: (blockTime, codeInterval) =>
       set((state) => {
-        state.game = {
-          startTime: Date.now(), // Record the start time
-          currentTime: Date.now(), // Initialize currentTime with startTime
-          blockTime,
-          codeInterval,
-          blockedBoxes: [],
-          isRunning: true,
-        };
+        console.log('startGame', blockTime, codeInterval);
+        if (codeInterval && blockTime) {
+          console.log('startGame running', blockTime, codeInterval);
+          state.game = {
+            startTime: Date.now(), // Record the start time
+            currentTime: Date.now(), // Initialize currentTime with startTime
+            blockTime,
+            codeInterval,
+            blockedBoxes: [],
+            isRunning: true,
+          };
+        }
       }),
   }))
 );

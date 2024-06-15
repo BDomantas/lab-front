@@ -16,16 +16,15 @@ import { Separator } from '@radix-ui/react-separator';
 import TeamsSetup from './components/TeamSetup/TeamsSetup';
 import { Toaster } from './components/ui/sonner';
 import PopoverCodeSetting from './components/PopoverCodeSettings';
-import { useGameStore } from './store/game';
 import { useGridDataStore } from './store/settings';
 import PopoverBlockSetting from './components/PopoverBlockSettings';
+import { Stopwatch } from './components/Timer';
 
 export const RgbColorToString = (color: RgbColor) => `rgb(${color.r} ${color.g} ${color.b})`;
 
 function App() {
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const { startGame } = useGameStore();
   const { settings } = useGridDataStore();
 
   return (
@@ -71,7 +70,7 @@ function App() {
           </Collapsible>
         </div>
         <TeamsSetup />
-        <Button onClick={() => startGame(1000 * 60, settings.codeSetting.timeInterval)}>START</Button>
+        <Stopwatch />
         <Toaster />
       </SerialDataProvider>
     </SerialPortControlProvider>
