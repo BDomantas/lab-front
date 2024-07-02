@@ -6,6 +6,7 @@ import { PopoverColorPicker } from '@/components/PopoverColorPicker';
 import { SunIcon } from '@radix-ui/react-icons';
 import { SettingKey, useGridDataStore } from '@/store/settings';
 import { RgbColor } from 'react-colorful';
+import { Label } from './ui/label';
 
 interface Props {
   settingKey: SettingKey;
@@ -14,7 +15,7 @@ interface Props {
 }
 
 const PopoverComponent: React.FC<Props> = ({ settingKey, title, subtitle }) => {
-  const { settings, setGridData, setColor } = useGridDataStore();
+  const { settings, setGridData, setColor, clearGridData } = useGridDataStore();
 
   const handleCellPress = (rowIndex: number, columnIndex: number) => {
     setGridData(settingKey, rowIndex, columnIndex);
@@ -33,7 +34,13 @@ const PopoverComponent: React.FC<Props> = ({ settingKey, title, subtitle }) => {
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">{subtitle}</p>
           </div>
-          <PopoverColorPicker color={color} onChange={(newColor: RgbColor) => setColor(settingKey, newColor)} />
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <Label>Spalva</Label>
+            <PopoverColorPicker color={color} onChange={(newColor: RgbColor) => setColor(settingKey, newColor)} />
+          </div>
+          <Button variant="destructive" onClick={() => clearGridData(settingKey)}>
+            Išvalyti
+          </Button>
           <div className="grid grid-cols-8 gap-2">
             {gridData.map((row, rowIndex) =>
               row.map((cell, columnIndex) => (

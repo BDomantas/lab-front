@@ -149,9 +149,8 @@ export const SerialDataProvider: React.FC<{ children: ReactNode }> = ({ children
   const unListenRef = useRef<() => void>(); // Ref to store the unlisten function
 
   const { addTag, useTag } = useGameStore();
-  const { updateStatus } = useSystemStore();
+  const { updateStatus, clearStatusGrid } = useSystemStore();
   const { settings: STORE } = useGridDataStore();
-  // console.log('SETTINGD NX', STORE);
 
   const handleTagR = (data: string) => {
     console.log('Received tag R:', data);
@@ -220,6 +219,7 @@ export const SerialDataProvider: React.FC<{ children: ReactNode }> = ({ children
   const handleMessage = (msg: string) => {
     // Check if the message starts with '#'
     if (msg.startsWith('#')) {
+      clearStatusGrid();
       // Find the index of ':'
       const colonIndex = msg.indexOf(':');
       // Extract the tag

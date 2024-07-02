@@ -20,6 +20,8 @@ export const useSystemStore = create<SystemState & Actions>()(
         setIsConnected: (success) => set(() => ({ isConnected: success })),
         statusGrid: Array(50).fill(false),
 
+        clearStatusGrid: () => set(() => ({ statusGrid: Array(50).fill(false) })),
+
         updateStatus: (index, online) =>
           set((state) => {
             console.log('updateStatus UPDATEE', index, online);

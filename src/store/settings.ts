@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { RgbColor } from 'react-colorful';
 import { immer } from 'zustand/middleware/immer';
+import { persist, devtools } from 'zustand/middleware';
 
 type GridSetting = {
   color: RgbColor;
@@ -36,6 +37,7 @@ type Actions = {
   updateCode: (newCode: string) => void;
   updateTimeInterval: (newTimeInterval?: number) => void;
   updateBlockTime: (newBlockTime?: number) => void;
+  clearGridData: (settingKey: SettingKey) => void;
 };
 
 const gridToCommandData = (grid: number[][]) => grid.map((row) => parseInt(row.join(''), 2));
@@ -64,53 +66,67 @@ export const updateGridSettingOrDefault = (
 };
 
 export const useGridDataStore = create<GridDataStore>()(
-  immer((set) => ({
-    settings: {
-      defaultGridSetting: {
-        color: { r: 200, g: 150, b: 35 },
-        gridData: defaultGrid,
-        gridCommandData: gridToCommandData(defaultGrid),
-      },
-      codeSetting: {
-        code: [],
-        timeInterval: undefined,
-        timeIntervalInput: '',
-      },
-      blockSetting: {
-        blockTime: undefined,
-        blockTimeInput: '',
-      },
-    },
-    setGridData: (settingKey, rowIndex, columnIndex) =>
-      set((state) => {
-        updateGridSettingOrDefault(state, settingKey, (setting) => {
-          setting.gridData[rowIndex][columnIndex] = setting.gridData[rowIndex][columnIndex] === 0 ? 1 : 0;
-          setting.gridCommandData = gridToCommandData(setting.gridData);
-        });
-      }),
+  devtools(
+    persist(
+      immer((set) => ({
+        settings: {
+          defaultGridSetting: {
+            color: { r: 200, g: 150, b: 35 },
+            gridData: defaultGrid,
+            gridCommandData: gridToCommandData(defaultGrid),
+          },
+          codeSetting: {
+            code: [],
+            timeInterval: undefined,
+            timeIntervalInput: '',
+          },
+          blockSetting: {
+            blockTime: undefined,
+            blockTimeInput: '',
+          },
+        },
+        setGridData: (settingKey, rowIndex, columnIndex) =>
+          set((state) => {
+            updateGridSettingOrDefault(state, settingKey, (setting) => {
+              setting.gridData[rowIndex][columnIndex] = setting.gridData[rowIndex][columnIndex] === 0 ? 1 : 0;
+              setting.gridCommandData = gridToCommandData(setting.gridData);
+            });
+          }),
 
-    setColor: (settingKey, newColor) =>
-      set((state) => {
-        updateGridSettingOrDefault(state, settingKey, (setting) => {
-          setting.color = newColor;
-        });
-      }),
+        clearGridData: (settingKey) =>
+          set((state) => {
+            updateGridSettingOrDefault(state, settingKey, (setting) => {
+              const emptyGrid = Array.from({ length: 8 }, () => Array(8).fill(0));
+              setting.gridData = emptyGrid;
+              setting.gridCommandData = gridToCommandData(emptyGrid);
+            });
+          }),
 
-    updateCode: (newCode: string) =>
-      set((state) => {
-        state.settings.codeSetting.code = newCode.split('').map((char) => parseInt(char, 10));
-      }),
+        setColor: (settingKey, newColor) =>
+          set((state) => {
+            updateGridSettingOrDefault(state, settingKey, (setting) => {
+              setting.color = newColor;
+            });
+          }),
 
-    updateTimeInterval: (newTimeInterval?: number) =>
-      set((state) => {
-        console.log('updateTimeInterval', newTimeInterval);
-        state.settings.codeSetting.timeInterval = newTimeInterval;
-      }),
+        updateCode: (newCode: string) =>
+          set((state) => {
+            state.settings.codeSetting.code = newCode.split('').map((char) => parseInt(char, 10));
+          }),
 
-    updateBlockTime: (newBlockTime?: number) =>
-      set((state) => {
-        console.log('updateBlockTime', newBlockTime);
-        state.settings.blockSetting.blockTime = newBlockTime;
-      }),
-  }))
+        updateTimeInterval: (newTimeInterval?: number) =>
+          set((state) => {
+            console.log('updateTimeInterval', newTimeInterval);
+            state.settings.codeSetting.timeInterval = newTimeInterval;
+          }),
+
+        updateBlockTime: (newBlockTime?: number) =>
+          set((state) => {
+            console.log('updateBlockTime', newBlockTime);
+            state.settings.blockSetting.blockTime = newBlockTime;
+          }),
+      })),
+      { name: 'settingsStore' }
+    )
+  )
 );
