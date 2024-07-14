@@ -10,6 +10,7 @@ interface SystemState {
 
 type Actions = {
   updateStatus: (index: number, online: boolean) => void;
+  clearStatusGrid: () => void;
 };
 
 export const useSystemStore = create<SystemState & Actions>()(

@@ -3,7 +3,7 @@ import { useContextSelector, createContext } from 'use-context-selector'; // Mak
 import { SerialPortControlContext } from './SerialPortControlProvider';
 import { TagUseResult, useGameStore } from '@/store/game';
 import { useSystemStore } from '@/store/system';
-import { useGridDataStore } from '@/store/settings';
+import { StringDigits, useGridDataStore } from '@/store/settings';
 
 type ReadDataResult = string;
 
@@ -19,127 +19,6 @@ const getTag = (msg: string) => {
   return '';
 };
 
-const codeNumbers: number[][][] = [
-  [
-    // 0
-    [0, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 0, 0, 0, 0, 1, 1],
-    [1, 1, 0, 0, 0, 0, 1, 1],
-    [1, 1, 0, 0, 0, 0, 1, 1],
-    [1, 1, 0, 0, 0, 0, 1, 1],
-    [1, 1, 0, 0, 0, 0, 1, 1],
-    [1, 1, 0, 0, 0, 0, 1, 1],
-    [0, 1, 1, 1, 1, 1, 1, 0],
-  ],
-  [
-    // 1
-    [0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 1, 1, 1, 0, 0, 0, 0],
-    [0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1],
-  ],
-  [
-    // 2
-    [0, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 0, 0, 0, 0, 1, 1],
-    [0, 0, 0, 0, 0, 0, 1, 1],
-    [0, 0, 0, 0, 0, 1, 1, 0],
-    [0, 0, 0, 1, 1, 0, 0, 0],
-    [0, 1, 1, 0, 0, 0, 0, 0],
-    [1, 1, 0, 0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-  ],
-  [
-    // 3
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 1, 1],
-    [0, 0, 0, 0, 1, 1, 0, 0],
-    [0, 0, 0, 1, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 1, 0],
-    [0, 0, 0, 0, 0, 0, 1, 1],
-    [1, 1, 0, 0, 0, 0, 1, 1],
-    [0, 1, 1, 1, 1, 1, 1, 0],
-  ],
-  [
-    // 4
-    [0, 0, 0, 0, 1, 1, 0, 0],
-    [0, 0, 0, 1, 1, 1, 0, 0],
-    [0, 0, 1, 1, 1, 1, 0, 0],
-    [0, 1, 1, 0, 1, 1, 0, 0],
-    [1, 1, 0, 0, 1, 1, 0, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 0, 0, 1, 1, 0, 0],
-    [0, 0, 0, 0, 1, 1, 0, 0],
-  ],
-  [
-    // 5
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 0, 0, 0, 0, 0, 0],
-    [1, 1, 0, 0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 0, 0, 0, 0, 0, 1, 1],
-    [0, 0, 0, 0, 0, 0, 1, 1],
-    [1, 1, 0, 0, 0, 0, 1, 1],
-    [0, 1, 1, 1, 1, 1, 1, 0],
-  ],
-  [
-    // 6
-    [0, 0, 0, 1, 1, 0, 0, 0],
-    [0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 1, 1, 0, 0, 0, 0, 0],
-    [1, 1, 0, 0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 0, 0, 0, 0, 1, 1],
-    [1, 1, 0, 0, 0, 0, 1, 1],
-    [0, 1, 1, 1, 1, 1, 1, 0],
-  ],
-  [
-    // 7
-    [0, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 1, 1],
-    [0, 0, 0, 0, 1, 1, 0, 0],
-    [0, 0, 0, 1, 1, 0, 0, 0],
-    [0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 1, 1, 0, 0, 0, 0],
-  ],
-  [
-    // 8
-    [0, 1, 1, 1, 1, 1, 1, 0],
-    [0, 1, 0, 0, 0, 0, 1, 1],
-    [0, 1, 0, 0, 0, 0, 1, 1],
-    [0, 1, 1, 1, 1, 1, 1, 0],
-    [0, 1, 0, 0, 0, 0, 1, 1],
-    [0, 1, 0, 0, 0, 0, 1, 1],
-    [0, 1, 0, 0, 0, 0, 1, 1],
-    [0, 1, 1, 1, 1, 1, 1, 0],
-  ],
-  [
-    // 9
-    [0, 1, 1, 1, 1, 1, 1, 0],
-    [0, 1, 0, 0, 0, 0, 1, 1],
-    [0, 1, 0, 0, 0, 0, 1, 1],
-    [0, 1, 1, 1, 1, 1, 1, 0],
-    [0, 0, 0, 0, 0, 0, 1, 1],
-    [0, 0, 0, 0, 0, 0, 1, 1],
-    [0, 0, 0, 0, 0, 0, 1, 1],
-    [0, 1, 1, 1, 1, 1, 1, 0],
-  ],
-];
-
-function getDigitRepresentation(digit: number): number[][] {
-  if (digit < 0 || digit > 9) {
-    throw new Error('Invalid digit. Digits must be between 0 and 9.');
-  }
-
-  return codeNumbers[digit]; // Return the corresponding 8x8 array from the 'numbers' array
-}
-
 export const SerialDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const MAX_DATA_LENGTH = 20;
   const dataIndex = useRef(0);
@@ -151,6 +30,13 @@ export const SerialDataProvider: React.FC<{ children: ReactNode }> = ({ children
   const { addTag, useTag } = useGameStore();
   const { updateStatus, clearStatusGrid } = useSystemStore();
   const { settings: STORE } = useGridDataStore();
+
+  // Use refs to store the latest STORE values
+  const storeRef = useRef(STORE);
+
+  useEffect(() => {
+    storeRef.current = STORE;
+  }, [STORE]);
 
   const handleTagR = (data: string) => {
     console.log('Received tag R:', data);
@@ -174,13 +60,22 @@ export const SerialDataProvider: React.FC<{ children: ReactNode }> = ({ children
     const tag = getTag(data);
     const { result, boxId, code } = useTag(tag, parseInt(tagData[0], 10));
     console.log('Tag use result:', result, boxId, code);
+    const currentStore = storeRef.current;
     if (result === TagUseResult.CODE) {
       if (code !== undefined) {
-        console.log('Sending code:', code, STORE.codeSetting.code?.[code]);
+        const codeDigit = String(currentStore.codeSetting.code?.[code]) as StringDigits;
+        console.log('Sending code:', code);
         // serialPort?.write(`${tagData[0]},${code}\n`);
 
-        const gridToCommand = gridToCommandData(codeNumbers?.[code]);
-        const codeCommand = `#BLOCK:${boxId},5,${STORE.mark?.color.r ?? 15},${STORE.mark?.color.g ?? 15},${STORE.mark?.color.b ?? 200},${gridToCommand.join(',')}\n`;
+        let codeSetting = currentStore?.[codeDigit];
+        let displayConfig = { gridToCommandData: codeSetting?.gridCommandData, color: codeSetting?.color };
+        if (!codeSetting) {
+          displayConfig = {
+            gridToCommandData: currentStore.mark?.gridCommandData ?? currentStore.defaultGridSetting.gridCommandData,
+            color: currentStore.mark?.color ?? currentStore.defaultGridSetting.color,
+          };
+        }
+        const codeCommand = `#BLOCK:${boxId},5,${displayConfig.color.r ?? 15},${displayConfig.color.g ?? 15},${displayConfig.color.b ?? 200},${displayConfig.gridToCommandData.join(',')}\n`;
         console.log('code cmd: ', codeCommand);
         serialPort?.write(codeCommand);
       }
@@ -189,17 +84,27 @@ export const SerialDataProvider: React.FC<{ children: ReactNode }> = ({ children
     }
     if (result === TagUseResult.MARK) {
       console.log('Sending mark:', boxId);
-      const markCommand = `#BLOCK:${boxId},5,${STORE.mark?.color.r ?? 50},${STORE.mark?.color.g ?? 50},${STORE.mark?.color.b ?? 50},${STORE.mark?.gridCommandData.join(',')}\n`;
+      const markCommand = `#BLOCK:${boxId},5,${currentStore.mark?.color.r ?? 50},${currentStore.mark?.color.g ?? 50},${currentStore.mark?.color.b ?? 50},${currentStore.mark?.gridCommandData.join(',')}\n`;
       console.log('mark cmd: ', markCommand);
 
-      const test = serialPort?.write(markCommand);
-      console.log('test', test);
+      serialPort?.write(markCommand);
     }
     if (result === TagUseResult.BLOCKED) {
       console.log('Sending blocked:', boxId);
-      const cmd = `#BLOCK:${boxId},5,${STORE.block?.color.r ?? 255},${STORE.block?.color.g ?? 255},${STORE.block?.color.b ?? 255},${STORE.block?.gridCommandData.join(',')}\n`;
-      console.log('blocked', cmd);
-      const blocked = serialPort?.write(cmd);
+      const cmd = `#BLOCK:${boxId},5,${currentStore.block?.color.r ?? 255},${currentStore.block?.color.g ?? 255},${currentStore.block?.color.b ?? 255},${currentStore.block?.gridCommandData.join(',')}\n`;
+      serialPort?.write(cmd);
+    }
+
+    if (result === TagUseResult.BOX_BLOCKED) {
+      console.log('Sending box blocked:', boxId);
+      const cmd = `#BLOCK:${boxId},5,${currentStore.boxBlock?.color.r ?? 255},${currentStore.boxBlock?.color.g ?? 255},${currentStore.boxBlock?.color.b ?? 255},${currentStore.boxBlock?.gridCommandData.join(',')}\n`;
+      serialPort?.write(cmd);
+    }
+
+    if (result === TagUseResult.USER_BLOCKED) {
+      console.log('Sending user blocked:', boxId);
+      const cmd = `#BLOCK:${boxId},5,${currentStore.userBlock?.color.r ?? 255},${currentStore.userBlock?.color.g ?? 255},${currentStore.userBlock?.color.b ?? 255},${currentStore.userBlock?.gridCommandData.join(',')}\n`;
+      serialPort?.write(cmd);
     }
   };
 
@@ -227,7 +132,7 @@ export const SerialDataProvider: React.FC<{ children: ReactNode }> = ({ children
       // Extract the data
       const data = msg.substring(colonIndex + 1);
 
-      // console.log('handleMessage', command);
+      console.log('handleMessage', command);
 
       // Use a switch statement to handle different tags
       switch (command) {
@@ -251,7 +156,7 @@ export const SerialDataProvider: React.FC<{ children: ReactNode }> = ({ children
   const handleData = useCallback(
     (result: ReadDataResult) => {
       try {
-        // console.log('handleData', result);
+        console.log('handleData', result);
         setData((prevData) => {
           const newData = [...prevData];
           dataIndex.current = (dataIndex.current + 1) % MAX_DATA_LENGTH;
@@ -263,7 +168,7 @@ export const SerialDataProvider: React.FC<{ children: ReactNode }> = ({ children
         console.error('Error in handleData:', error);
       }
     },
-    [STORE.block, STORE.codeSetting, STORE.mark, serialPort?.write]
+    [serialPort?.write]
   );
 
   useEffect(() => {

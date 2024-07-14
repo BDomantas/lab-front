@@ -7,13 +7,14 @@ export const Stopwatch = () => {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const startTimeRef = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
-  const { startGame } = useGameStore();
+  const { startGame, pauseGame, resetGame, updateBoxBlockTimers } = useGameStore();
   const { settings } = useGridDataStore();
 
   // Move updateTimer outside of useEffect
   const updateTimer = () => {
     const now = Date.now();
     setTimeElapsed(now - (startTimeRef.current || now));
+    updateBoxBlockTimers();
     timerRef.current = requestAnimationFrame(updateTimer); // Self-reference is okay here
   };
 
@@ -38,12 +39,14 @@ export const Stopwatch = () => {
     if (timerRef.current) {
       cancelAnimationFrame(timerRef.current);
       timerRef.current = null;
+      pauseGame();
     }
   };
 
   const resetTimer = () => {
     stopTimer();
     setTimeElapsed(0);
+    resetGame();
   };
 
   // Format time to MM:SS

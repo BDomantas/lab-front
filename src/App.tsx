@@ -16,16 +16,14 @@ import { Separator } from '@radix-ui/react-separator';
 import TeamsSetup from './components/TeamSetup/TeamsSetup';
 import { Toaster } from './components/ui/sonner';
 import PopoverCodeSetting from './components/PopoverCodeSettings';
-import { useGridDataStore } from './store/settings';
 import PopoverBlockSetting from './components/PopoverBlockSettings';
 import { Stopwatch } from './components/Timer';
+import PopoverCodeGridSetting from './components/PopoverCodeGridSetting';
 
 export const RgbColorToString = (color: RgbColor) => `rgb(${color.r} ${color.g} ${color.b})`;
 
 function App() {
   const [isOpen, setIsOpen] = React.useState(false);
-
-  const { settings } = useGridDataStore();
 
   return (
     <SerialPortControlProvider>
@@ -47,6 +45,20 @@ function App() {
           <PopoverCodeSetting title="Kodas" subtitle="Dėžutė parodys kodą kas nustatytą laiko intervalą" />
 
           <PopoverBlockSetting title="Blokavimas" subtitle="laiko intervalas minutėmis" />
+
+          <PopoverCodeGridSetting title="Kodo atvaizdavimas" subtitle="Kodo atvaizdavimo nustatymai" />
+
+          <PopoverComponent
+            settingKey="boxBlock"
+            title="Blokuotos dėžutės vaizdas"
+            subtitle="Dėžutė parodys šį vaizdą kai ji yra užblokuota"
+          />
+
+          <PopoverComponent
+            settingKey="userBlock"
+            title="Blokuoto žaidėjo vaizdas"
+            subtitle="Dėžutė parodys šį vaizdą kai žaidėjas yra užblokuotas"
+          />
 
           <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full my-2">
             <div className="">

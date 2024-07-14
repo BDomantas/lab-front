@@ -1,11 +1,11 @@
-import React, { ChangeEvent, useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useGridDataStore } from '@/store/settings';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
-import { Input } from './ui/input';
 import { Label } from './ui/label';
+import BlockInput from './BlockInput';
 
 interface Props {
   title: string;
@@ -13,25 +13,7 @@ interface Props {
 }
 
 const PopoverCodeSetting: React.FC<Props> = ({ title, subtitle }) => {
-  const { settings, updateCode, updateTimeInterval } = useGridDataStore();
-  const [codeIntervalInput, setCodeIntervalInput] = useState(String(settings.blockSetting.blockTime ?? ''));
-
-  // onChange handler that only accepts valid numeric input
-  const handleCodeIntevalChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const inputValue = event.target.value;
-    const numericValue = inputValue.replace(/[^0-9]/g, ''); // Filter non-numeric characters
-
-    // Always update the local state to reflect the filtered value
-    setCodeIntervalInput(numericValue);
-
-    const parsedValue = parseInt(numericValue, 10); // Parse to number
-    if (!isNaN(parsedValue)) {
-      // Ensure the parsed value is valid
-      updateTimeInterval(parsedValue); // Call the provided update function
-    } else {
-      updateTimeInterval(undefined); // Update the state to undefined if the parsed value is invalid
-    }
-  };
+  const { settings, updateCode, updateCodeTimeInterval } = useGridDataStore();
 
   return (
     <Popover>
@@ -64,18 +46,12 @@ const PopoverCodeSetting: React.FC<Props> = ({ title, subtitle }) => {
             </InputOTP>
           </div>
 
-          <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="email">Laiko intervalas minutėmis</Label>
-            <Input
-              type="text"
-              id="time"
-              placeholder="Laiko intervalas"
-              inputMode="numeric"
-              pattern="\d*"
-              value={codeIntervalInput}
-              onChange={handleCodeIntevalChange}
-            />
-          </div>
+          <BlockInput
+            title="Laiko intervalas sekundėmis"
+            placeholder="Laiko intervalas"
+            value={settings.codeSetting.timeIntervalInput}
+            onChange={updateCodeTimeInterval}
+          />
         </div>
       </PopoverContent>
     </Popover>

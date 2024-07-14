@@ -18,31 +18,36 @@ type CodeLog = {
   codeIndex: number;
 };
 
-type Member = {
+export type Team = {
+  name: string;
+  members: Member[];
+};
+
+type EntityBlockSetting = {
+  entityId: number;
+  blockStart?: number;
+  blockDuration?: number;
+  blockEnd?: number;
+  blockDurationInput?: number;
+  permanentBlock: boolean;
+  isBlocked: boolean;
+  remainingTime?: number;
+};
+
+export type Member = {
   name: string;
   score: number;
   tag: string;
   lastTag: Record<string, number>;
   log: TagLog[];
   codeLog: CodeLog[];
-};
-
-export type Team = {
-  name: string;
-  members: Member[];
-};
-
-type BlockedBox = {
-  boxId: number;
-  blockStart: number;
-  blockDuration: number;
+  blockSetting: EntityBlockSetting;
 };
 
 type Game = {
   startTime?: number;
   currentTime: number;
   blockTime: number;
-  blockedBoxes: BlockedBox[];
   isRunning: boolean;
   codeInterval: number;
 };
@@ -60,6 +65,7 @@ const newMember = (name: string, tag: string): Member => ({
   log: [],
   codeLog: [],
   lastTag: {},
+  blockSetting: getEmptyBlockEntitySetting(0),
 });
 
 const newTeam = (name: string): Team => ({ name, members: [] });
@@ -69,6 +75,7 @@ type GameDataStore = {
   teams: Team[];
   selectedTag: () => string | undefined;
   game: Game; // Add the game object to the store
+  boxSettings: Record<number, EntityBlockSetting>;
 } & Actions;
 
 type Actions = {
@@ -78,7 +85,25 @@ type Actions = {
   addMember: (name: string, team: string, tag: string) => void;
   useTag: (tag: string, boxId: number) => { boxId: number; result: TagUseResult; member?: Member; code?: number };
   startGame: (blockTime?: number, codeInterval?: number) => void;
+  blockBox: (boxId: number) => void;
+  unBlockBox: (boxId: number) => void;
+  setBlockBoxSetting: (boxId: number, blockDuration?: number, permanentBlock?: boolean) => void;
+  updateBoxBlockTimers: () => void;
+  blockUser: (tag: string) => void;
+  unBlockUser: (tag: string) => void;
+  setBlockUserSetting: (tag: string, blockDuration?: number, permanentBlock?: boolean) => void;
+  updateUserBlockTimers: () => void;
+  pauseGame: () => void;
+  resetGame: () => void;
 };
+
+const getEmptyBlockEntitySetting = (boxId: number): EntityBlockSetting => ({
+  entityId: boxId,
+  permanentBlock: false,
+  isBlocked: false,
+});
+
+const initialBoxSettings = Array.from({ length: 51 }, (_, i) => getEmptyBlockEntitySetting(i));
 
 const INITIAL_STATE: GameDataStore = {
   tags: [],
@@ -86,10 +111,10 @@ const INITIAL_STATE: GameDataStore = {
   game: {
     currentTime: 0,
     blockTime: 0,
-    blockedBoxes: [],
     isRunning: false,
     codeInterval: 1000 * 60 * 5,
   },
+  boxSettings: initialBoxSettings,
   selectedTag: () => undefined,
   selectTag: () => {},
   assignTag: () => {},
@@ -97,6 +122,16 @@ const INITIAL_STATE: GameDataStore = {
   addMember: () => {},
   useTag: () => ({ boxId: 0, result: TagUseResult.ERROR_GAME_NOT_RUNNING, member: undefined }),
   startGame: () => {},
+  blockBox: () => {},
+  pauseGame: () => {},
+  resetGame: () => {},
+  setBlockBoxSetting: () => {},
+  unBlockBox: () => {},
+  updateBoxBlockTimers: () => {},
+  blockUser: () => {},
+  unBlockUser: () => {},
+  setBlockUserSetting: () => {},
+  updateUserBlockTimers: () => {},
 };
 
 export const tagExists = (state: GameDataStore, tag: string) => state.tags.some((t) => t.tag === tag);
@@ -183,6 +218,8 @@ export enum TagUseResult {
   ERROR_MEMBER_NOT_FOUND = 'ERROR_MEMBER_NOT_FOUND',
   ERROR_GAME_NOT_RUNNING = 'ERROR_GAME_NOT_RUNNING',
   CODE = 'CODE',
+  BOX_BLOCKED = 'BOX_BLOCKED',
+  USER_BLOCKED = 'USER_BLOCKED',
 }
 
 function findHighestCodeIndexEntry(codeLog: CodeLog[]): CodeLog | null {
@@ -196,6 +233,10 @@ function findHighestCodeIndexEntry(codeLog: CodeLog[]): CodeLog | null {
 
   return highestIndexEntry;
 }
+
+const isBoxBlocked = (boxId: number, boxSettings: Record<number, EntityBlockSetting>) => {
+  return boxSettings[boxId]?.isBlocked;
+};
 
 export const useGameStore = create<GameDataStore>()(
   immer((set, get) => ({
@@ -260,7 +301,12 @@ export const useGameStore = create<GameDataStore>()(
               state.game.blockTime,
               member?.lastTag[tag]
             );
-            if (!member.lastTag?.[tag] || currentTime - (member.lastTag?.[tag] ?? 0) >= state.game.blockTime) {
+
+            if (isBoxBlocked(boxId, state.boxSettings)) {
+              result = TagUseResult.BOX_BLOCKED;
+            } else if (member.blockSetting.isBlocked) {
+              result = TagUseResult.USER_BLOCKED;
+            } else if (!member.lastTag?.[tag] || currentTime - (member.lastTag?.[tag] ?? 0) >= state.game.blockTime) {
               increaseScoreAndUpdateLastTag(member);
 
               // Code generation logic
@@ -326,9 +372,186 @@ export const useGameStore = create<GameDataStore>()(
             currentTime: Date.now(), // Initialize currentTime with startTime
             blockTime,
             codeInterval,
-            blockedBoxes: [],
             isRunning: true,
           };
+        }
+      }),
+
+    pauseGame: () =>
+      set((state) => {
+        state.game.isRunning = false;
+      }),
+
+    resetGame: () =>
+      set((state) => {
+        state.game = {
+          startTime: Date.now(), // Record the start time
+          currentTime: Date.now(), // Initialize currentTime with startTime
+          blockTime: 0,
+          codeInterval: 1000 * 60 * 5,
+          isRunning: false,
+        };
+      }),
+
+    setBlockBoxSetting: (boxId, blockDuration, permanentBlock) =>
+      set((state) => {
+        console.log('setBlockBoxSetting', boxId, blockDuration, permanentBlock);
+        const boxSetting = state.boxSettings[boxId];
+        if (boxSetting) {
+          if (permanentBlock) {
+            boxSetting.permanentBlock = true;
+          } else if (blockDuration) {
+            boxSetting.blockDuration = blockDuration * 1000;
+            boxSetting.blockDurationInput = blockDuration;
+            boxSetting.permanentBlock = false;
+          } else {
+            boxSetting.blockStart = undefined;
+            boxSetting.blockDuration = undefined;
+            boxSetting.blockEnd = undefined;
+            boxSetting.blockDurationInput = undefined;
+            boxSetting.permanentBlock = false;
+            console.log('blockBox error', boxId, blockDuration, permanentBlock);
+          }
+        }
+      }),
+
+    blockBox: (boxId) =>
+      set((state) => {
+        const boxSetting = state.boxSettings[boxId];
+        console.log('blockBox', boxId, boxSetting);
+        if (boxSetting) {
+          if (boxSetting.permanentBlock) {
+            boxSetting.isBlocked = true;
+          } else if (boxSetting.blockDuration) {
+            boxSetting.blockStart = Date.now();
+            boxSetting.blockEnd = boxSetting.blockStart + (boxSetting.blockDuration ?? 0);
+            boxSetting.isBlocked = true;
+          } else {
+            boxSetting.blockStart = undefined;
+            boxSetting.blockDuration = undefined;
+            boxSetting.blockEnd = undefined;
+            boxSetting.blockDurationInput = undefined;
+            boxSetting.permanentBlock = false;
+            console.log('blockBox error', boxId, boxSetting);
+          }
+        }
+      }),
+
+    blockUser: (tag) =>
+      set((state) => {
+        const userSetting = findMemberWithTag(state, tag);
+
+        console.log('blockUser', tag, userSetting);
+        if (userSetting) {
+          userSetting.blockSetting.isBlocked = true;
+        } else {
+          console.log('blockUser error', tag, userSetting);
+        }
+      }),
+
+    unBlockUser: (tag) =>
+      set((state) => {
+        const userSetting = findMemberWithTag(state, tag);
+
+        console.log('unBlockUser', tag, userSetting);
+        if (userSetting) {
+          userSetting.blockSetting.isBlocked = false;
+          userSetting.blockSetting.blockStart = undefined;
+          userSetting.blockSetting.blockDuration = undefined;
+          userSetting.blockSetting.blockEnd = undefined;
+          userSetting.blockSetting.blockDurationInput = undefined;
+          userSetting.blockSetting.permanentBlock = false;
+        } else {
+          console.log('unBlockUser error', tag, userSetting);
+        }
+      }),
+
+    setBlockUserSetting: (tag, blockDuration, permanentBlock) =>
+      set((state) => {
+        const userSetting = findMemberWithTag(state, tag);
+
+        console.log('setBlockUserSetting', tag, userSetting);
+        if (userSetting) {
+          if (permanentBlock) {
+            userSetting.blockSetting.permanentBlock = true;
+          } else if (blockDuration) {
+            userSetting.blockSetting.blockDuration = blockDuration * 1000;
+            userSetting.blockSetting.blockDurationInput = blockDuration;
+            userSetting.blockSetting.permanentBlock = false;
+          } else {
+            userSetting.blockSetting.blockStart = undefined;
+            userSetting.blockSetting.blockDuration = undefined;
+            userSetting.blockSetting.blockEnd = undefined;
+            userSetting.blockSetting.blockDurationInput = undefined;
+            userSetting.blockSetting.permanentBlock = false;
+            console.log('blockUser error', tag, userSetting);
+          }
+        }
+      }),
+
+    updateUserBlockTimers: () =>
+      set((state) => {
+        for (const team of state.teams) {
+          for (const member of team.members) {
+            const userSetting = member.blockSetting;
+
+            if (userSetting.isBlocked) {
+              if (userSetting.blockDuration && userSetting.blockStart) {
+                userSetting.remainingTime = userSetting.blockDuration - (Date.now() - userSetting.blockStart);
+                if (userSetting.remainingTime <= 0) {
+                  userSetting.isBlocked = false;
+                  userSetting.blockStart = undefined;
+                  userSetting.blockDuration = undefined;
+                  userSetting.blockEnd = undefined;
+                  userSetting.blockDurationInput = undefined;
+                  userSetting.permanentBlock = false;
+                }
+              } else {
+                userSetting.remainingTime = undefined;
+              }
+            } else {
+              userSetting.remainingTime = undefined;
+            }
+          }
+        }
+      }),
+
+    unBlockBox: (boxId) =>
+      set((state) => {
+        const boxSetting = state.boxSettings[boxId];
+        console.log('unBlockBox', boxId, boxSetting);
+        if (boxSetting) {
+          boxSetting.isBlocked = false;
+          boxSetting.blockStart = undefined;
+          boxSetting.blockDuration = undefined;
+          boxSetting.blockEnd = undefined;
+          boxSetting.blockDurationInput = undefined;
+          boxSetting.permanentBlock = false;
+        }
+      }),
+
+    updateBoxBlockTimers: () =>
+      set((state) => {
+        for (const box of Object.values(state.boxSettings)) {
+          const boxSetting = state.boxSettings[box.entityId];
+
+          if (boxSetting.isBlocked) {
+            if (boxSetting.blockDuration && boxSetting.blockStart) {
+              boxSetting.remainingTime = boxSetting.blockDuration - (Date.now() - boxSetting.blockStart);
+              if (boxSetting.remainingTime <= 0) {
+                boxSetting.isBlocked = false;
+                boxSetting.blockStart = undefined;
+                boxSetting.blockDuration = undefined;
+                boxSetting.blockEnd = undefined;
+                boxSetting.blockDurationInput = undefined;
+                boxSetting.permanentBlock = false;
+              }
+            } else {
+              boxSetting.remainingTime = undefined;
+            }
+          } else {
+            boxSetting.remainingTime = undefined;
+          }
         }
       }),
   }))
