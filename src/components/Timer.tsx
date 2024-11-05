@@ -54,13 +54,17 @@ export const Stopwatch = () => {
   const seconds = Math.floor((timeElapsed % 60000) / 1000);
 
   return (
-    <div>
-      <div>
+    <div className="gap-4">
+      <div className="text-center text-5xl font-bold py-10">
         {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
       </div>
-      <Button onClick={startTimer}>Start</Button>
-      <Button onClick={stopTimer}>Stop</Button>
-      <Button onClick={resetTimer}>Reset</Button>
+      <div className="flex gap-4">
+        <Button onClick={startTimer}>Start</Button>
+        <Button onClick={stopTimer}>Stop</Button>
+        <Button variant={'destructive'} onClick={resetTimer}>
+          Reset
+        </Button>
+      </div>
     </div>
   );
 };

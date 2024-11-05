@@ -124,7 +124,6 @@ export const SerialDataProvider: React.FC<{ children: ReactNode }> = ({ children
   const handleMessage = (msg: string) => {
     // Check if the message starts with '#'
     if (msg.startsWith('#')) {
-      clearStatusGrid();
       // Find the index of ':'
       const colonIndex = msg.indexOf(':');
       // Extract the tag

@@ -82,7 +82,9 @@ function App() {
           </Collapsible>
         </div>
         <TeamsSetup />
-        <Stopwatch />
+        <div className="flex justify-center items-center py-10">
+          <Stopwatch />
+        </div>
         <Toaster />
       </SerialDataProvider>
     </SerialPortControlProvider>
